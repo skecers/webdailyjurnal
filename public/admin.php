@@ -148,7 +148,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
                             <h5 class="card-title">Total Articles</h5>
                             <?php
                             // Koneksi ke database
-                            $conn = new mysqli("localhost", "root", "", "pbw_admin");
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
 
                             // Cek koneksi
                             if ($conn->connect_error) {
@@ -173,7 +173,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
                             <h5 class="card-title">Total Gallery Images</h5>
                             <?php
                         // Koneksi ke database
-                        $conn = new mysqli("localhost", "root", "", "pbw_admin");
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
 
                         // Cek koneksi
                         if ($conn->connect_error) {
@@ -204,7 +204,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 <?php
                 // Koneksi ke database
-                $conn = new mysqli("localhost", "root", "", "pbw_admin");
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
 
                 // Cek koneksi
                 if ($conn->connect_error) {
@@ -239,12 +239,11 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
     </section>
     <!-- End Content -->
 
+    <!-- Footer -->
     <footer class="text-center py-4 mt-5" style="box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);">
         <div class="container">
             <a href="https://github.com/alvindeo"><i class="bi bi-github h5 p-1"></i></a>
-            <a href="https://www.instagram.com/alvndeoo/"><i class="bi bi-instagram h5 p-1"></i></a>
-            <a href="https://wa.me/+6285174455921"><i class="bi bi-whatsapp h5 p-1"></i></a>
-            <p class="mb-0">Alvin Deo Ardiansyah &copy; 2024</p>
+            <p class="mb-0">Syafiq Farras Syauqi &copy; 2025</p>
         </div>
     </footer>
 
