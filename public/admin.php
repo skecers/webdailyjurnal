@@ -242,7 +242,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
     <!-- Footer -->
     <footer class="text-center py-4 mt-5" style="box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);">
         <div class="container">
-            <a href="https://github.com/alvindeo"><i class="bi bi-github h5 p-1"></i></a>
+            <a href="https://github.com/skecers/webdailyjurnal"><i class="bi bi-github h5 p-1"></i></a>
             <p class="mb-0">Syafiq Farras Syauqi &copy; 2025</p>
         </div>
     </footer>
