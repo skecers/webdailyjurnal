@@ -1,124 +1,11 @@
 <?php
 session_start();
-include "koneksi.php";
+include "koneksi.php";  
 
-// Fetch Articles
-$result = $conn->query("SELECT * FROM articles");
-
-if (isset($_POST['create'])) {
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-    $image = '';
-    $username = "admin"; // Ganti sesuai dengan sistem username Anda
-    $created_at = date("Y-m-d H:i:s"); // Tanggal dan waktu saat ini
-
-    // Handle Image Upload
-    if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-        $targetDir = "../img/"; // Folder tujuan
-        $targetFile = $targetDir . basename($_FILES["image"]["name"]);
-        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-            $image = $_FILES["image"]["name"];
-        } else {
-            $_SESSION['message'] = "Failed to upload image.";
-            $_SESSION['msg_type'] = "danger";
-            header("refresh:2;url=edit_article.php");
-            exit;
-        }
-    }
-
-    // Do not truncate the table to keep existing articles
-
-    // Save Data to Database
-    $stmt = $conn->prepare("INSERT INTO articles (title, image, content, username, created_at) VALUES (?, ?, ?, ?, ?)");
-    if ($stmt) {
-        $stmt->bind_param("sssss", $title, $image, $content, $username, $created_at);
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Article created successfully!";
-            $_SESSION['msg_type'] = "success";
-        } else {
-            $_SESSION['message'] = "Failed to create article.";
-            $_SESSION['msg_type'] = "danger";
-        }
-        $stmt->close();
-    } else {
-        $_SESSION['message'] = "Failed to prepare statement.";
-        $_SESSION['msg_type'] = "danger";
-    }
-    header("refresh:2;url=edit_article.php");
-}
-
-// Handle Update
-if (isset($_POST['update'])) {
-    $id = $_POST['id'];
-    $title = $_POST['title'];
-    $content = $_POST['content'];
-
-    // Fetch the current image from the database
-    $stmt = $conn->prepare("SELECT image FROM articles WHERE id=?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    $stmt->bind_result($currentImage);
-    $stmt->fetch();
-    $stmt->close();
-
-    // Check if a new image is uploaded
-    if (isset($_FILES['new_image']) && $_FILES['new_image']['error'] == 0) {
-        $targetDir = "../img/"; // Folder tujuan
-        $targetFile = $targetDir . basename($_FILES["new_image"]["name"]);
-        if (move_uploaded_file($_FILES["new_image"]["tmp_name"], $targetFile)) {
-            $image = $_FILES["new_image"]["name"]; // New image
-        } else {
-            $_SESSION['message'] = "Failed to upload new image.";
-            $_SESSION['msg_type'] = "danger";
-            header("refresh:2;url=edit_article.php");
-            exit;
-        }
-    } else {
-        // If no new image, use the current image
-        $image = $currentImage;
-    }
-
-    // Update data in the database
-    $stmt = $conn->prepare("UPDATE articles SET title=?, image=?, content=? WHERE id=?");
-    if ($stmt) {
-        $stmt->bind_param("sssi", $title, $image, $content, $id);
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Article updated successfully!";
-            $_SESSION['msg_type'] = "success";
-            header("refresh:2;url=edit_article.php");
-        } else {
-            $_SESSION['message'] = "Failed to update article.";
-            $_SESSION['msg_type'] = "danger";
-            header("refresh:2;url=edit_article.php");
-        }
-        $stmt->close();
-    } else {
-        $_SESSION['message'] = "Failed to prepare statement.";
-        $_SESSION['msg_type'] = "danger";
-    }
-}
-
-// Handle Delete
-if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-
-    $stmt = $conn->prepare("DELETE FROM articles WHERE id=?");
-    if ($stmt) {
-        $stmt->bind_param("i", $id);
-        if ($stmt->execute()) {
-            $_SESSION['message'] = "Article deleted successfully!";
-            $_SESSION['msg_type'] = "success";
-            header("refresh:2;url=edit_article.php"); // Redirect after 2 seconds
-        } else {
-            $_SESSION['message'] = "Failed to delete article.";
-            $_SESSION['msg_type'] = "danger";
-            header("refresh:2;url=edit_article.php"); // Redirect after 2 seconds
-        }
-        $stmt->close();
-    } else {
-        $_SESSION['message'] = "Failed to prepare statement.";
-        $_SESSION['msg_type'] = "danger";
-    }
+// Cek apakah pengguna sudah login sebagai admin
+if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
+    header("Location: login.php");
+    exit();
 }
 ?>
 
@@ -133,15 +20,7 @@ if (isset($_GET['delete'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-    .navbar {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
     .navbar {
         position: fixed;
         top: 0;
@@ -195,7 +74,7 @@ if (isset($_GET['delete'])) {
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg bg-body-tertiary sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="admin.php">Dashboard Admin</a>
+            <a class="navbar-brand fw-bold" href="#">Dashboard Admin</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -204,10 +83,10 @@ if (isset($_GET['delete'])) {
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="admin.php">Dashboard</a>
+                        <a class="nav-link" href="#dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Article</a>
+                        <a class="nav-link" href="edit_article.php">Article</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="gallery.php">Gallery</a>
@@ -257,224 +136,197 @@ if (isset($_GET['delete'])) {
     </nav>
     <!-- End Navbar -->
 
+    <!-- Content -->
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="py-5 mt-5">
+        <div class="container">
+            <h1 class="text-center fw-bold mb-5">Dashboard</h1>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                <div class="col">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Articles</h5>
+                            <?php
+                            // Koneksi ke database
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
 
-    <!-- Main Content -->
-    <div class="container mt-5" style="padding-top: 70px;">
-        <h1 class="text-start"> Artikel </h1>
-        <hr>
-        <!-- Notification -->
-        <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?php echo $_SESSION['msg_type']; ?> alert-dismissible fade show" role="alert">
-            <?php
-            echo $_SESSION['message'];
-            unset($_SESSION['message']);
-            unset($_SESSION['msg_type']);
-            ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            // Cek koneksi
+                            if ($conn->connect_error) {
+                                die("Connection failed: " . $conn->connect_error);
+                            }
+
+                            // Ambil jumlah artikel dari database
+                            $sql = "SELECT COUNT(*) as total FROM articles";
+                            $result = $conn->query($sql);
+                            $total_articles = $result->fetch_assoc()['total'];
+
+                            // Tutup koneksi
+                            $conn->close();
+                            ?>
+                            <p class="card-text fs-1 fw-bold"><?php echo $total_articles; ?></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Gallery Images</h5>
+                            <?php
+                        // Koneksi ke database
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
+
+                        // Cek koneksi
+                        if ($conn->connect_error) {
+                            die("Connection failed: " . $conn->connect_error);
+                        }
+
+                        // Ambil jumlah gambar dari tabel gallery
+                        $sql = "SELECT COUNT(*) as total FROM gallery";
+                        $result = $conn->query($sql);
+                        $total_images = $result->fetch_assoc()['total'];
+
+                        // Tutup koneksi
+                        $conn->close();
+                        ?>
+                            <p class="card-text fs-1 fw-bold"><?php echo $total_images; ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <?php endif; ?>
+    </section>
+    <!-- End Dashboard -->
 
-        <!-- Create Article Button -->
-        <button type="button" class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#createArticleModal">
-            Buat Artikel
-        </button>
+    <!-- Articles Section -->
+    <section id="articles" class="py-5">
+        <div class="container">
+            <h1 class="text-center fw-bold mb-5">Articles</h1>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                <?php
+                // Koneksi ke database
+                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
 
-        <tbody>
-            <!-- Create Article POP UP -->
-            <div class="modal fade" id="createArticleModal" tabindex="-1" aria-labelledby="createArticleModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="createArticleModalLabel">Buat Artikel</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="" enctype="multipart/form-data">
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Judul</label>
-                                    <input type="text" class="form-control" id="title" name="title" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="content" class="form-label">Isi</label>
-                                    <textarea class="form-control" id="content" name="content" rows="3"
-                                        required></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="image" class="form-label">Gambar</label>
-                                    <input type="file" class="form-control" id="image" name="image" required>
-                                </div>
-                                <button type="submit" name="create" class="btn btn-primary">Create</button>
-                            </form>
+                // Cek koneksi
+                if ($conn->connect_error) {
+                    die("Connection failed: " . $conn->connect_error);
+                }
 
-                        </div>
-                    </div>
-                </div>
+                // Ambil data artikel dari database
+                $sql = "SELECT title, image FROM articles";
+                $result = $conn->query($sql);
+
+                if ($result->num_rows > 0) {
+                    // Output data dari setiap baris
+                    while ($row = $result->fetch_assoc()) {
+                        echo '<div class="col">';
+                        echo '    <div class="card h-100">';
+                        echo '        <img src="../img/' . $row["image"] . '" class="card-img-top" alt="' . $row["title"] . '" />';
+                        echo '        <div class="card-body">';
+                        echo '            <h5 class="card-title text-center">' . $row["title"] . '</h5>';
+                        echo '        </div>';
+                        echo '    </div>';
+                        echo '</div>';
+                    }
+                } else {
+                    echo "0 results";
+                }
+
+                // Tutup koneksi
+                $conn->close();
+                ?>
             </div>
+        </div>
+    </section>
+    <!-- End Content -->
 
-            <!-- Articles List -->
-            <div class="">
-                <div class="card-body">
-                    <table class="table">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>No</th>
-                                <th class="w-25">Judul</th>
-                                <th class="w-75">Isi</th>
-                                <th class="w-25">Gambar</th>
-                                <th class="w-25">Aksi</th>
-                            </tr>
-                        </thead>
+    <!-- Footer -->
+    <footer class="text-center py-4 mt-5" style="box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);">
+        <div class="container">
+            <a href="https://github.com/alvindeo"><i class="bi bi-github h5 p-1"></i></a>
+            <p class="mb-0">Syafiq Farras Syauqi &copy; 2025</p>
+        </div>
+    </footer>
 
-                        <tbody>
-                            <?php $no = 1; while ($row = $result->fetch_assoc()): ?>
-                            <tr>
-
-                                <td><?php echo $no++; ?></td>
-                                <td>
-                                    <strong><?php echo $row['title']; ?></strong>
-                                    <br> Pada: <?= $row['created_at']; ?>
-                                    <br> Oleh: <?= $row['username']; ?>
-                                </td>
-                                <td><?php echo $row['content']; ?>
-                                </td>
-                                <td><img src="../img/<?php echo $row['image']; ?>" class="img-fluid"
-                                        style="max-width: 100px;"></td>
-
-                                <td>
-
-                                    <a href="#" title="edit" class="badge rounded-pill text-bg-success"
-                                        data-bs-toggle="modal" data-bs-target="#editModal"
-                                        data-id="<?php echo $row['id']; ?>"
-                                        data-title="<?php echo htmlspecialchars($row['title'], ENT_QUOTES); ?>"
-                                        data-content="<?php echo htmlspecialchars($row['content'], ENT_QUOTES); ?>"
-                                        data-image="<?php echo htmlspecialchars($row['image'], ENT_QUOTES); ?>">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-
-
-                                    <a href="?delete=<?php echo $row['id']; ?>" title="delete"
-                                        class="badge rounded-pill text-bg-danger">
-                                        <i class="bi bi-x-circle"></i>
-                                    </a>
-
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Edit Article Modal -->
-            <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="editModalLabel">Edit Artikel</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="" enctype="multipart/form-data">
-                                <!-- Hidden input for article ID -->
-                                <input type="hidden" name="id" id="modal-id">
-
-                                <!-- Title Input -->
-                                <div class="mb-3">
-                                    <label for="modal-title" class="form-label">Judul</label>
-                                    <input type="text" class="form-control" id="modal-title" name="title" required>
-                                </div>
-
-                                <!-- Content Input -->
-                                <div class="mb-3">
-                                    <label for="modal-content" class="form-label">Isi</label>
-                                    <textarea class="form-control" id="modal-content" name="content" rows="3"
-                                        required></textarea>
-                                </div>
-
-                                <!-- Existing Image Display -->
-                                <div class="mb-3">
-                                    <label class="form-label">Gambar Lama</label>
-                                    <div>
-                                        <img id="modal-current-image" src="" alt="Current Image" class="img-thumbnail"
-                                            style="max-width: 100%; height: auto;">
-                                    </div>
-                                </div>
-
-                                <!-- New Image Input -->
-                                <div class="mb-3">
-                                    <label for="modal-new-image" class="form-label">Upload Gambar Baru</label>
-                                    <input type="file" class="form-control" id="modal-new-image" name="new_image">
-                                </div>
-
-                                <!-- Submit Button -->
-                                <button type="submit" name="update" class="btn btn-primary">Update</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-            <script>
-            const editModal = document.getElementById('editModal');
-            editModal.addEventListener('show.bs.modal', function(event) {
-                const button = event.relatedTarget; // Button that triggered the modal
-                const id = button.getAttribute('data-id');
-                const title = button.getAttribute('data-title');
-                const content = button.getAttribute('data-content');
-                const image = button.getAttribute('data-image');
-
-                // Populate the modal fields
-                const modalId = editModal.querySelector('#modal-id');
-                const modalTitle = editModal.querySelector('#modal-title');
-                const modalContent = editModal.querySelector('#modal-content');
-                const modalCurrentImage = editModal.querySelector('#modal-current-image');
-
-                modalId.value = id;
-                modalTitle.value = title;
-                modalContent.value = content;
-
-                // Update the current image source
-                modalCurrentImage.src = '../img/' + image;
-            });
-            </script>
-        </tbody>
-    </div>
-
+    <!-- Theme Switcher -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (() => {
+        'use strict'
+
+        const getStoredTheme = () => localStorage.getItem('theme')
+        const setStoredTheme = theme => localStorage.setItem('theme', theme)
+
+        const getPreferredTheme = () => {
+            const storedTheme = getStoredTheme()
+            if (storedTheme) {
+                return storedTheme
+            }
+
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+        }
+
+        const setTheme = theme => {
+            if (theme === 'auto') {
+                document.documentElement.setAttribute('data-bs-theme', (window.matchMedia(
+                    '(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+            } else {
+                document.documentElement.setAttribute('data-bs-theme', theme)
+            }
+        }
+
+        setTheme(getPreferredTheme())
+
+        const showActiveTheme = (theme, focus = false) => {
+            const themeSwitcher = document.querySelector('#bd-theme')
+
+            if (!themeSwitcher) {
+                return
+            }
+
+            const themeSwitcherText = document.querySelector('#bd-theme-text')
+            const activeThemeIcon = document.querySelector('.theme-icon-active use')
+            const btnToActive = document.querySelector(`[data-bs-theme-value="${theme}"]`)
+            const svgOfActiveBtn = btnToActive.querySelector('svg use').getAttribute('href')
+
+            document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
+                element.classList.remove('active')
+                element.setAttribute('aria-pressed', 'false')
+            })
+
+            btnToActive.classList.add('active')
+            btnToActive.setAttribute('aria-pressed', 'true')
+            activeThemeIcon.setAttribute('href', svgOfActiveBtn)
+            const themeSwitcherLabel =
+                `${themeSwitcherText.textContent} (${btnToActive.dataset.bsThemeValue})`
+            themeSwitcher.setAttribute('aria-label', themeSwitcherLabel)
+
+            if (focus) {
+                themeSwitcher.focus()
+            }
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const storedTheme = getStoredTheme()
+            if (storedTheme !== 'light' && storedTheme !== 'dark') {
+                setTheme(getPreferredTheme())
+            }
+        })
+
+        window.addEventListener('DOMContentLoaded', () => {
+            showActiveTheme(getPreferredTheme())
+
+            document.querySelectorAll('[data-bs-theme-value]')
+                .forEach(toggle => {
+                    toggle.addEventListener('click', () => {
+                        const theme = toggle.getAttribute('data-bs-theme-value')
+                        setStoredTheme(theme)
+                        setTheme(theme)
+                        showActiveTheme(theme, true)
+                    })
+                })
+        })
+    })()
+    </script>
 </body>
 
 </html>
-
-<?php
-$conn->close();
-?>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const themeDropdown = document.getElementById('themeDropdown');
-    const themeButtons = themeDropdown.querySelectorAll('.dropdown-item');
-    const themeIconActive = themeDropdown.querySelector('.theme-icon-active');
-
-    // Load saved theme from localStorage
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-    }
-
-    themeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const theme = this.getAttribute('data-bs-theme-value');
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            updateThemeIcon(theme);
-        });
-    });
-
-    function updateThemeIcon(theme) {
-        const iconClass = theme === 'dark' ? 'bi-moon-stars-fill' : 'bi-sun-fill';
-        themeIconActive.className = `bi ${iconClass} theme-icon-active`;
-    }
-});
-</script>
