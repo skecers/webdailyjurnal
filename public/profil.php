@@ -141,8 +141,7 @@
             $password = $_POST['password'];
 
             // Database connection
-                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
-
+ $conn = new mysqli("localhost", "root", "", "pbw_admin");
             // Check connection
             if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
