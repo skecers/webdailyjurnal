@@ -148,8 +148,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
                             <h5 class="card-title">Total Articles</h5>
                             <?php
                             // Koneksi ke database
-                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
-
+ $conn = new mysqli("localhost", "root", "", "pbw_admin");
                             // Cek koneksi
                             if ($conn->connect_error) {
                                 die("Connection failed: " . $conn->connect_error);
@@ -173,8 +172,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
                             <h5 class="card-title">Total Gallery Images</h5>
                             <?php
                         // Koneksi ke database
-                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
-
+ $conn = new mysqli("localhost", "root", "", "pbw_admin");
                         // Cek koneksi
                         if ($conn->connect_error) {
                             die("Connection failed: " . $conn->connect_error);
@@ -204,8 +202,7 @@ if (!isset($_SESSION['username']) || $_SESSION['username'] !== 'admin') {
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 <?php
                 // Koneksi ke database
-                $conn = new mysqli("sql303.infinityfree.com", "if0_38118796", "F9jFXCKTrKQq", "if0_38118796_pbw_admin");
-
+ $conn = new mysqli("localhost", "root", "", "pbw_admin");
                 // Cek koneksi
                 if ($conn->connect_error) {
                     die("Connection failed: " . $conn->connect_error);
